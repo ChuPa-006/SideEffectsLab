@@ -101,12 +101,23 @@ private fun DirectScrollVariant(
     listState: androidx.compose.foundation.lazy.LazyListState,
     modifier: Modifier = Modifier
 ) {
-    val showButton = listState.firstVisibleItemIndex > 0
+    val index = listState.firstVisibleItemIndex // Deliberately reads the changing index directly.
+    val showButton = index > 0
+    val compositionCount = remember { AtomicInteger(0) }
+    val counterView = remember { AtomicReference<TextView?>(null) }
+
+    SideEffect {
+        val count = compositionCount.incrementAndGet()
+        counterView.get()?.text = "Compositions: $count"
+        Log.d("Task5DirectCompositions", "Successful composition #$count; index=$index")
+    }
+
     ScrollVariantBody(
         title = "Direct read",
         listState = listState,
         showButton = showButton,
-        counterTag = "Task5DirectCompositions",
+        compositionCount = compositionCount,
+        counterView = counterView,
         modifier = modifier
     )
 }
@@ -119,11 +130,21 @@ private fun DerivedScrollVariant(
     val showButton by remember(listState) {
         derivedStateOf { listState.firstVisibleItemIndex > 0 }
     }
+    val compositionCount = remember { AtomicInteger(0) }
+    val counterView = remember { AtomicReference<TextView?>(null) }
+
+    SideEffect {
+        val count = compositionCount.incrementAndGet()
+        counterView.get()?.text = "Compositions: $count"
+        Log.d("Task5DerivedCompositions", "Successful composition #$count; showButton=$showButton")
+    }
+
     ScrollVariantBody(
         title = "derivedStateOf",
         listState = listState,
         showButton = showButton,
-        counterTag = "Task5DerivedCompositions",
+        compositionCount = compositionCount,
+        counterView = counterView,
         modifier = modifier
     )
 }
@@ -133,12 +154,11 @@ private fun ScrollVariantBody(
     title: String,
     listState: androidx.compose.foundation.lazy.LazyListState,
     showButton: Boolean,
-    counterTag: String,
+    compositionCount: AtomicInteger,
+    counterView: AtomicReference<TextView?>,
     modifier: Modifier
 ) {
     val scope = rememberCoroutineScope()
-    val compositionCount = remember { AtomicInteger(0) }
-    val counterView = remember { AtomicReference<TextView?>(null) }
 
     Card(modifier = modifier) {
         Column(
@@ -161,12 +181,7 @@ private fun ScrollVariantBody(
                     view.text = "Compositions: ${compositionCount.get()}"
                 }
             )
-            // The counter is outside Compose State to avoid a SideEffect -> state update -> recomposition loop.
-            SideEffect {
-                val count = compositionCount.incrementAndGet()
-                counterView.get()?.text = "Compositions: $count"
-                Log.d(counterTag, "Successful composition #$count")
-            }
+            // The parent variant counts its own successful recompositions with SideEffect.
             if (showButton) {
                 Button(onClick = { scope.launch { listState.animateScrollToItem(0) } }) {
                     Text("To top")
