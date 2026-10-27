@@ -7,9 +7,6 @@ import androidx.compose.foundation.layout.padding
 
 // Placeholder screens keep the starter project structurally complete.
 // Each stub is replaced by the real implementation in its own Git commit.
-@Composable fun Task1SplashScreen(onBack: () -> Unit) {
-    TaskScreenScaffold("Task 1: Splash screen", onBack) { Text("Task 1 implementation is added in its own commit.", Modifier.padding(it)) }
-}
 @Composable fun Task2SnackbarScreen(onBack: () -> Unit, onNavigateAway: () -> Unit) {
     TaskScreenScaffold("Task 2: Snackbar", onBack) { Text("Task 2 implementation is added in its own commit.", Modifier.padding(it)) }
 }
