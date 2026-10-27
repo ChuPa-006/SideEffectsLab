@@ -29,8 +29,12 @@ fun Task1SplashScreen(onBack: () -> Unit) {
     var version by remember { mutableIntStateOf(0) }
     var runId by remember { mutableIntStateOf(0) }
 
-    // The parent creates a new callback as version changes every 500 ms.
-    val onTimeout: () -> Unit = { Log.d("Task1Callback", "callback fired: v$version") }
+    // Snapshot the Int into an immutable value. The callback closes over this version,
+    // so an effect that captured the old lambda really will log the old version.
+    val callbackVersion = version
+    val onTimeout: () -> Unit = {
+        Log.d("Task1Callback", "callback fired: v$callbackVersion")
+    }
 
     LaunchedEffect(Unit) {
         while (true) {
